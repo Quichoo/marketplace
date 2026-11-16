@@ -5,7 +5,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Link from "next/link";
 import { getSupabase } from "@/lib/supabase";
 import { CATEGORIES } from "@/lib/constants";
 import type { Listing } from "@/lib/types";
@@ -34,7 +33,7 @@ async function Listings({ category }: { category: string | undefined }) {
         <Typography variant="h6" gutterBottom>
           {category ? `No listings in ${category} yet.` : "No listings yet."}
         </Typography>
-        <Button variant="contained" component={Link} href="/listings/new">
+        <Button variant="contained" href="/listings/new">
           Sell something
         </Button>
       </Box>
