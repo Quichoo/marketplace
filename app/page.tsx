@@ -1,69 +1,81 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { Suspense } from "react";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Link from "next/link";
+import { getSupabase } from "@/lib/supabase";
+import { CATEGORIES } from "@/lib/constants";
+import type { Listing } from "@/lib/types";
+import { ListingCard } from "@/components/ListingCard";
+import { CategoryFilter } from "@/components/CategoryFilter";
 
-export default function Home() {
+async function Listings({ category }: { category: string | undefined }) {
+  let listings: Listing[];
+  try {
+    let query = getSupabase().from("listings").select("*").order("created_at", { ascending: false });
+    if (category) {
+      query = query.eq("category", category);
+    }
+    const { data, error } = await query;
+    if (error) {
+      throw new Error(error.message);
+    }
+    listings = data;
+  } catch {
+    return <Alert severity="error">Could not load listings. Please try again later.</Alert>;
+  }
+
+  if (listings.length === 0) {
+    return (
+      <Box sx={{ textAlign: "center", py: 8 }}>
+        <Typography variant="h6" gutterBottom>
+          {category ? `No listings in ${category} yet.` : "No listings yet."}
+        </Typography>
+        <Button variant="contained" component={Link} href="/listings/new">
+          Sell something
+        </Button>
+      </Box>
+    );
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.tsx</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <Grid container spacing={2}>
+      {listings.map((listing) => (
+        <Grid key={listing.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+          <ListingCard listing={listing} />
+        </Grid>
+      ))}
+    </Grid>
+  );
+}
+
+export default function HomePage({ searchParams }: PageProps<"/">) {
+  return (
+    <Box>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Today&apos;s listings
+      </Typography>
+      <Suspense fallback={<Box sx={{ display: "flex", justifyContent: "center", py: 8 }}><CircularProgress /></Box>}>
+        <CategoryFilterSection searchParams={searchParams} />
+      </Suspense>
+    </Box>
+  );
+}
+
+async function CategoryFilterSection({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
+  const { category } = await searchParams;
+  const categoryParam = typeof category === "string" ? category : undefined;
+  const categoryValue = CATEGORIES.includes(categoryParam as (typeof CATEGORIES)[number])
+    ? categoryParam
+    : undefined;
+
+  return (
+    <>
+      <CategoryFilter active={categoryValue} />
+      <Listings category={categoryValue} />
+    </>
   );
 }
