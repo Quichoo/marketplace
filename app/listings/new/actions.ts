@@ -106,7 +106,11 @@ export async function createListing(
     }
 
     redirect(`/listings/${id}`);
-  } catch {
+  } catch (e) {
+    // redirect() throws a control-flow error; let it propagate.
+    if (e && typeof e === "object" && "digest" in e) {
+      throw e;
+    }
     return { error: "Something went wrong. Please try again." };
   }
 }
