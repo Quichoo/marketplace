@@ -6,11 +6,14 @@ import Chip from "@mui/material/Chip";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Divider from "@mui/material/Divider";
+import Button from "@mui/material/Button";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getSupabase } from "@/lib/supabase";
+import { isSellerChargesEnabled } from "@/lib/sellers";
 import type { Listing } from "@/lib/types";
 import { MessageSellerForm } from "./MessageSellerForm";
+import { BuyNowButton } from "./BuyNowButton";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -30,6 +33,7 @@ async function ListingDetail({ id }: { id: string }) {
   }
 
   const l = listing as Listing;
+  const chargesEnabled = await isSellerChargesEnabled(l.seller_email);
   const postedDate = new Date(l.created_at).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -88,9 +92,30 @@ async function ListingDetail({ id }: { id: string }) {
           {l.description}
         </Typography>
         <Divider />
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
           Sold by: <strong>{l.seller_email}</strong>
+          <Chip
+            label={chargesEnabled ? "Payments enabled" : "Payments not set up"}
+            size="small"
+            color={chargesEnabled ? "success" : "default"}
+            variant="outlined"
+          />
         </Typography>
+        {l.status === "available" ? (
+          chargesEnabled ? (
+            l.price >= 0.5 ? (
+              <BuyNowButton listingId={l.id} />
+            ) : (
+              <Button variant="contained" size="large" disabled fullWidth>
+                Price below payment minimum
+              </Button>
+            )
+          ) : (
+            <Button variant="contained" size="large" disabled fullWidth>
+              Seller hasn&apos;t set up payments
+            </Button>
+          )
+        ) : null}
         <Paper variant="outlined" sx={{ p: 2, mt: 1 }}>
           <Typography variant="h6" gutterBottom>
             Message seller
