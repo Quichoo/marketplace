@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getStripe } from "@/lib/stripe";
+import { getStripe, expressVersionOptions } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export async function GET(request: NextRequest) {
@@ -20,12 +20,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const link = await getStripe().accountLinks.create({
-      account: accountId,
-      type: "account_onboarding",
-      return_url: `${siteUrl}/connect/return?account=${accountId}`,
-      refresh_url: `${siteUrl}/connect/refresh?account=${accountId}`,
-    });
+    const link = await getStripe().accountLinks.create(
+      {
+        account: accountId,
+        type: "account_onboarding",
+        return_url: `${siteUrl}/connect/return?account=${accountId}`,
+        refresh_url: `${siteUrl}/connect/refresh?account=${accountId}`,
+      },
+      expressVersionOptions(),
+    );
     return NextResponse.redirect(link.url);
   } catch {
     return NextResponse.redirect(`${siteUrl}/connect`);

@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getStripe } from "@/lib/stripe";
+import { getStripe, expressVersionOptions } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -56,20 +56,23 @@ export async function connectWithStripe(
     } else {
       let account: { id: string };
       try {
-        // No email sent to Stripe: prefilling it triggers Stripe's real sign-in/sign-up
-        // check on the hosted form and blocks test-mode onboarding shortcuts.
-        // The seller email stays in our sellers table only (our mapping key).
-        // Version note: current API rejects type:"express" on new creates with the
-        // default 2026-10-28 version; the express account is created via the pinned
-        // 2025-06-30.basil raw request in the setup script, this SDK call keeps the
-        // same shape minus email.
-        account = await stripe.accounts.create({
-          country: "US",
-          capabilities: {
-            card_payments: { requested: true },
-            transfers: { requested: true },
+        // Express accounts for Express hosted onboarding (/setup/e/), which supports
+        // test-mode onboarding shortcuts. No email sent to Stripe: prefilling it
+        // triggers Stripe's real sign-in/sign-up check; the seller email stays in our
+        // sellers table only (our mapping key). The current API version rejects
+        // type:"express" creates, so this request is pinned to 2025-06-30.basil via
+        // the Stripe-Version header (see lib/stripe.ts).
+        account = await stripe.accounts.create(
+          {
+            type: "express",
+            country: "US",
+            capabilities: {
+              card_payments: { requested: true },
+              transfers: { requested: true },
+            },
           },
-        });
+          expressVersionOptions(),
+        );
       } catch {
         return { error: "Stripe could not create the connected account. Please try again." };
       }
@@ -97,12 +100,15 @@ export async function connectWithStripe(
 
     let linkUrl: string;
     try {
-      const link = await stripe.accountLinks.create({
-        account: accountId,
-        type: "account_onboarding",
-        return_url: `${siteUrl}/connect/return?account=${accountId}`,
-        refresh_url: `${siteUrl}/connect/refresh?account=${accountId}`,
-      });
+      const link = await stripe.accountLinks.create(
+        {
+          account: accountId,
+          type: "account_onboarding",
+          return_url: `${siteUrl}/connect/return?account=${accountId}`,
+          refresh_url: `${siteUrl}/connect/refresh?account=${accountId}`,
+        },
+        expressVersionOptions(),
+      );
       linkUrl = link.url;
     } catch {
       return { error: "Stripe could not create the onboarding link. Please try again." };
