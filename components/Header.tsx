@@ -19,6 +19,9 @@ export function Header() {
         <Button color="inherit" href="/">
           Browse
         </Button>
+        <Button color="inherit" href="/connect">
+          Connect with Stripe
+        </Button>
         <Button color="inherit" href="/listings/new">
           Sell something
         </Button>
