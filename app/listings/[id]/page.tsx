@@ -92,15 +92,17 @@ async function ListingDetail({ id }: { id: string }) {
           {l.description}
         </Typography>
         <Divider />
-        <Typography variant="body2" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-          Sold by: <strong>{l.seller_email}</strong>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+          <Typography variant="body2" color="text.secondary" component="span">
+            Sold by: <strong>{l.seller_email}</strong>
+          </Typography>
           <Chip
             label={chargesEnabled ? "Payments enabled" : "Payments not set up"}
             size="small"
             color={chargesEnabled ? "success" : "default"}
             variant="outlined"
           />
-        </Typography>
+        </Box>
         {l.status === "available" ? (
           chargesEnabled ? (
             l.price >= 0.5 ? (
