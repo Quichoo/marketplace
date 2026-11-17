@@ -6,6 +6,7 @@ export interface Listing {
   category: string;
   seller_email: string;
   image_url: string;
+  status: "available" | "sold";
   created_at: string;
   updated_at: string;
 }

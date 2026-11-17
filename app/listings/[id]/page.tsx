@@ -46,16 +46,39 @@ async function ListingDetail({ id }: { id: string }) {
           sizes="(max-width: 900px) 100vw, 60vw"
           style={{ objectFit: "cover", borderRadius: 8 }}
         />
+        {l.status === "sold" && (
+          <Typography
+            variant="overline"
+            sx={{
+              position: "absolute",
+              top: 16,
+              left: 16,
+              bgcolor: "error.main",
+              color: "error.contrastText",
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 1,
+              fontWeight: 700,
+            }}
+          >
+            Sold
+          </Typography>
+        )}
       </Box>
       <Box sx={{ flex: "1 1 40%", display: "flex", flexDirection: "column", gap: 2 }}>
         <Typography variant="h4" component="h1">
           {l.title}
         </Typography>
-        <Typography variant="h5" color="primary.main" sx={{ fontWeight: 700 }}>
+        <Typography
+          variant="h5"
+          color="primary.main"
+          sx={{ fontWeight: 700, ...(l.status === "sold" && { textDecoration: "line-through" }) }}
+        >
           ${l.price.toFixed(2)}
         </Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
           <Chip label={l.category} size="small" />
+          {l.status === "sold" && <Chip label="Sold" size="small" color="error" variant="outlined" />}
           <Typography variant="body2" color="text.secondary">
             Posted {postedDate}
           </Typography>

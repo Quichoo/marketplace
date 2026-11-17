@@ -26,10 +26,19 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <Typography variant="h6" component="h3" noWrap>
           {listing.title}
         </Typography>
-        <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700 }}>
+        <Typography
+          variant="h6"
+          color="primary.main"
+          sx={{ fontWeight: 700, ...(listing.status === "sold" && { textDecoration: "line-through" }) }}
+        >
           ${listing.price.toFixed(2)}
         </Typography>
-        <Chip label={listing.category} size="small" sx={{ mt: 1 }} />
+        <Box sx={{ mt: 1, display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+          <Chip label={listing.category} size="small" />
+          {listing.status === "sold" && (
+            <Chip label="Sold" size="small" color="error" variant="outlined" />
+          )}
+        </Box>
       </CardContent>
     </Card>
   );
