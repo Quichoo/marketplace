@@ -56,12 +56,15 @@ export async function connectWithStripe(
     } else {
       let account: { id: string };
       try {
-        // stripe v23 (API 2026-10-28): `type: "express"` is rejected for new platforms.
-        // A bare create with only country/email/capabilities yields an account where
-        // Stripe collects requirements and holds losses, with a Stripe-hosted dashboard.
+        // No email sent to Stripe: prefilling it triggers Stripe's real sign-in/sign-up
+        // check on the hosted form and blocks test-mode onboarding shortcuts.
+        // The seller email stays in our sellers table only (our mapping key).
+        // Version note: current API rejects type:"express" on new creates with the
+        // default 2026-10-28 version; the express account is created via the pinned
+        // 2025-06-30.basil raw request in the setup script, this SDK call keeps the
+        // same shape minus email.
         account = await stripe.accounts.create({
           country: "US",
-          email,
           capabilities: {
             card_payments: { requested: true },
             transfers: { requested: true },
